@@ -1173,6 +1173,9 @@ static void test_per_vtl_tsc_reference_page(void)
 	struct hv_reference_tsc_page *vtl0_tsc_ref = g_vtl_partition_ctx[0].tsc_reference_page;
 	for (size_t i = 1; i < HV_NUM_VTLS; ++i) {
 		struct hv_reference_tsc_page *tsc_ref = g_vtl_partition_ctx[i].tsc_reference_page;
+		printf("tscpage vtl0 seq %u scale %lx offset %lx | vtl%zu seq %u scale %lx offset %lx\n",
+		       vtl0_tsc_ref->tsc_sequence, vtl0_tsc_ref->tsc_scale, vtl0_tsc_ref->tsc_offset,
+		       i, tsc_ref->tsc_sequence, tsc_ref->tsc_scale, tsc_ref->tsc_offset);
 		report(	vtl0_tsc_ref->tsc_scale == tsc_ref->tsc_scale &&
 			vtl0_tsc_ref->tsc_offset == tsc_ref->tsc_offset &&
 			vtl0_tsc_ref->tsc_sequence == tsc_ref->tsc_sequence,
