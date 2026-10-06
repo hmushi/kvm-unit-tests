@@ -1927,6 +1927,10 @@ static void test_gpa_protection_mask(void)
 	expected_msg.instruction_bytes[2] = 0x00;
 	DO_ACCESS_FAULT("mov (%%rax), %%rax");
 
+	if (memcmp(&expected_msg, &g_last_intercept_msg, sizeof(expected_msg))) {
+		print_intercept_message(&expected_msg, "EXPECTED");
+		print_intercept_message(&g_last_intercept_msg, "SEEN");
+	}
 	report(0 == memcmp(&expected_msg, &g_last_intercept_msg, sizeof(expected_msg)),
 	       "Seen an expected read intercept message");
 
@@ -1952,6 +1956,10 @@ static void test_gpa_protection_mask(void)
 	expected_msg.instruction_bytes[2] = 0x00;
 	DO_ACCESS_FAULT("mov %%rax, (%%rax)");
 
+	if (memcmp(&expected_msg, &g_last_intercept_msg, sizeof(expected_msg))) {
+		print_intercept_message(&expected_msg, "EXPECTED");
+		print_intercept_message(&g_last_intercept_msg, "SEEN");
+	}
 	report(0 == memcmp(&expected_msg, &g_last_intercept_msg, sizeof(expected_msg)),
 	       "Seen an expected write intercept message");
 
@@ -1988,6 +1996,10 @@ static void test_gpa_protection_mask(void)
 	expected_msg.header.rip = (uintptr_t)test_page;
 	expected_msg.rsp -= 8;
 
+	if (memcmp(&expected_msg, &g_last_intercept_msg, sizeof(expected_msg))) {
+		print_intercept_message(&expected_msg, "EXPECTED");
+		print_intercept_message(&g_last_intercept_msg, "SEEN");
+	}
 	report(0 == memcmp(&expected_msg, &g_last_intercept_msg, sizeof(expected_msg)),
 	       "Seen an expected execute intercept message");
 
