@@ -1989,7 +1989,14 @@ static void test_gpa_protection_mask(void)
 	/* Try executing code from the page and expect an intercept message in response.
 	 * Inline assembly is required to record faulting fetch instruction address */
 	expected_msg.header.access_type_mask = HV_INTERCEPT_ACCESS_EXECUTE;
-	expected_msg.header.instruction_length = 2; /* Instruction length in this case is call %%rax, which is 2 bytes */
+	/*
+	 * TLFS: instruction_length describes the instruction at the faulting
+	 * RIP, here the `ret` (c3) placed in the test page, so 1. Nicolas's
+	 * kernel reported 2 (the `call %rax`) because it passed the VMCS
+	 * VM_EXIT_INSTRUCTION_LEN of the EPT violation, which is not defined
+	 * for the fetch target.
+	 */
+	expected_msg.header.instruction_length = 1;
 	expected_msg.gpa = virt_to_phys(test_page);
 	memset(expected_msg.instruction_bytes, 0, sizeof(expected_msg.instruction_bytes));
 	expected_msg.instruction_byte_count = 0; /* No instruction decoding for exec accesses */
