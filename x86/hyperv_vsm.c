@@ -1567,9 +1567,15 @@ static void test_hv_pv_ipi(void)
 
 	in_vtl.target_vtl = 1;
 	in_vtl.use_target_vtl = 1;
-	hyperv_send_pv_ipi(1ULL << target_cpu, in_vtl.as_u8, VTL_IPI_VECTOR);
-	wait_atomic(&g_ipi_count[1], 2);
-	report(atomic_read(&g_ipi_count[0]) == 1 && atomic_read(&g_ipi_count[1]) == 2,
+	/*
+	 * A lower VTL may not interrupt a higher one.  The hypervisor must
+	 * refuse this with HV_STATUS_ACCESS_DENIED and deliver nothing, so
+	 * VTL1 count stays at the single delivery from the VTL1 to VTL1 case
+	 * above.
+	 */
+	report((hyperv_send_pv_ipi(1ULL << target_cpu, in_vtl.as_u8,
+				   VTL_IPI_VECTOR) & 0xffff) == HV_STATUS_ACCESS_DENIED &&
+	       atomic_read(&g_ipi_count[0]) == 1 && atomic_read(&g_ipi_count[1]) == 1,
 	       "VTL0 to VTL1 PV IPI");
 
 	run_in_vtl1(lambda(void, (void) {
@@ -1578,7 +1584,7 @@ static void test_hv_pv_ipi(void)
 		hyperv_send_pv_ipi(1ULL << target_cpu, in_vtl.as_u8, VTL_IPI_VECTOR);
 	}));
 	wait_atomic(&g_ipi_count[0], 2);
-	report(atomic_read(&g_ipi_count[0]) == 2 && atomic_read(&g_ipi_count[1]) == 2,
+	report(atomic_read(&g_ipi_count[0]) == 2 && atomic_read(&g_ipi_count[1]) == 1,
 	       "VTL1 to VTL0 PV IPI");
 
 	run_in_vtl1(lambda(void, (void) {
@@ -1587,7 +1593,7 @@ static void test_hv_pv_ipi(void)
 		hyperv_send_pv_ipi_ex(1ULL << target_cpu, in_vtl.as_u8, VTL_IPI_VECTOR);
 	}));
 	wait_atomic(&g_ipi_count[0], 3);
-	report(atomic_read(&g_ipi_count[0]) == 3 && atomic_read(&g_ipi_count[1]) == 2,
+	report(atomic_read(&g_ipi_count[0]) == 3 && atomic_read(&g_ipi_count[1]) == 1,
 	       "VTL1 to VTL0 PV IPI EX");
 	cli();
 }
